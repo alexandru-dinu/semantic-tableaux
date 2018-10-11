@@ -1,0 +1,4 @@
+a OR b
+IF b THEN c IFF NOT d
+d IFF NOT a
+c

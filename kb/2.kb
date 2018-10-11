@@ -1,0 +1,6 @@
+IF paullikes THEN paulbuys
+IF wendylikes THEN wendybuys
+IF susanlikes THEN susanbuys
+IF wendybuys THEN baskethas
+paullikes OR wendylikes OR susanlikes
+baskethas

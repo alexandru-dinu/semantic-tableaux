@@ -1,0 +1,4 @@
+IF blackmailed THEN pacts
+IF pacts THEN NOT loyal
+rewards IFF loyal
+blackmailed AND rewards

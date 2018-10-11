@@ -1,0 +1,4 @@
+IF sunny THEN beautiful
+IF beautiful THEN dogs
+IF dogs THEN full
+sunny AND NOT full
