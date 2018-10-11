@@ -1,0 +1,4 @@
+IF it_rains THEN no_play
+IF no_play THEN me_sad
+it_rains
+NOT me_sad
