@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     if debug:
         while True:
-            pl_parser.parse(input("> "))
+            pl_parser.parse(input())
     else:
         kb = sys.argv[1]
         props = [line.strip() for line in open(kb, "rt").readlines()]
