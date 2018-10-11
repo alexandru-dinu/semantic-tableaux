@@ -2,8 +2,6 @@ module Prop where
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
 
 type Context = Map String Bool
 
@@ -40,12 +38,3 @@ eval ctx (Or p q)  = (eval ctx p)   ||   (eval ctx q)
 eval ctx (Iff p q) = (eval ctx p)  `iff` (eval ctx q)
 eval ctx (Imp p q) = (eval ctx p)  `imp` (eval ctx q)
 
-
-atoms :: Phi -> Set String
-atoms (Var x) = Set.singleton x
-atoms (Not p) = atoms p
-atoms (And p q) = Set.union (atoms p) (atoms q)
-atoms (Or p q)  = Set.union (atoms p) (atoms q)
-atoms (Iff p q) = Set.union (atoms p) (atoms q)
-atoms (Imp p q) = Set.union (atoms p) (atoms q)
-     
