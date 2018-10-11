@@ -1,0 +1,9 @@
+alfredcar OR alfredbus
+carworks IFF cargas
+alfredgoes IFF alfredbus AND busworks
+alfredbus IFF NOT carworks
+alfredcar IFF cargas
+busworks IFF NOT traffic
+NOT cargas
+NOT traffic
+alfredgoes
