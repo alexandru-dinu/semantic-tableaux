@@ -30,6 +30,8 @@ delete it from the original sp (-> sp'),
 and recursively construct the rest of the tree, branching on m
 (depending on what formula m is)
 the status of current node is an and of the all child statuses
+
+if sat, a possible assignment is the Open, Atomic set
 -}
 build :: Set Phi -> Tableaux
 build sp = case describeSet sp of
@@ -79,25 +81,25 @@ describeSet sp = if existsComplements sp
     else if (not . allAtoms) sp then NonAtomic else Open
 
 
--- ops: separate / extract
-separate :: [Phi] -> [Set Phi]
-separate xs = map Set.singleton xs
+-- ops: beta / alpha
+beta :: [Phi] -> [Set Phi]
+beta xs = map Set.singleton xs
 
-extract :: [Phi] -> [Set Phi]
-extract xs = [Set.fromList xs]
+alpha :: [Phi] -> [Set Phi]
+alpha xs = [Set.fromList xs]
 
 branchOn :: Phi -> [Set Phi]
 -- no ramification, just _expand_ the formula
-branchOn (And p q)       = extract [p, q]
-branchOn (Not (Or p q))  = extract [Not p, Not q]
-branchOn (Not (Imp p q)) = extract [p, Not q]
-branchOn (Iff p q)       = extract [Imp p q, Imp q p]
-branchOn (Not (Not p))   = extract [p]
+branchOn (And p q)       = alpha [p, q]
+branchOn (Not (Or p q))  = alpha [Not p, Not q]
+branchOn (Not (Imp p q)) = alpha [p, Not q]
+branchOn (Iff p q)       = alpha [Imp p q, Imp q p]
+branchOn (Not (Not p))   = alpha [p]
 -- ramification
-branchOn (Or p q)        = separate [p, q]
-branchOn (Imp p q)       = separate [Not p, q]
-branchOn (Not (And p q)) = separate [Not p, Not q]
-branchOn (Not (Iff p q)) = separate [Not (Imp p q), Not (Imp q p)]
+branchOn (Or p q)        = beta [p, q]
+branchOn (Imp p q)       = beta [Not p, q]
+branchOn (Not (And p q)) = beta [Not p, Not q]
+branchOn (Not (Iff p q)) = beta [Not (Imp p q), Not (Imp q p)]
 
 
 -- eye-candy
