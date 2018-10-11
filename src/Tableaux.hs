@@ -12,35 +12,36 @@ import Prop
 type NodeType = (Set Phi, Bool)
 type Tableaux = Tree NodeType
 
+data SetStatus = NonAtomic | Open | Closed deriving (Eq, Show)
+
 tableaux :: Phi -> Tableaux
 tableaux sp = (build . Set.singleton) sp
 
 {-
 the tree is built as follows:
-check the closedStatus of current set of formulas (sp)
-    if the set contains only atomic elements, 
-    construct a leaf node containing sp and its status (sat <-> ~closed)
+check the status of current set of formulas (sp)
 
-    if the set contains non-atomic elements,
-    select such an element (m) from the non-atomic-only subset,
-    delete it from the original sp (-> sp'),
-    and recursively construct the rest of the tree, branching on m
-    (depending on what formula m is)
-    the closedStatus of current node is an and of the all child statuses
+if the set is open or closed, don't construct further (leaf node), 
+set closed status (sat <-> ~closed)
+
+if the set contains non-atomic elements,
+select such an element (m) from the non-atomic-only subset,
+delete it from the original sp (-> sp'),
+and recursively construct the rest of the tree, branching on m
+(depending on what formula m is)
+the status of current node is an and of the all child statuses
 -}
 build :: Set Phi -> Tableaux
-build sp = case closedStatus sp of
-    -- sp is atomic -> leaf and its 'closed' status
-    Just cls -> Tree.Node (sp, cls) [] 
-    -- sp is non-atomic -> select + expand formula
-    Nothing   -> Tree.Node (sp, cls) rest
+build sp = case describeSet sp of
+    Open      -> Tree.Node (sp, False) []
+    Closed    -> Tree.Node (sp, True)  []
+    NonAtomic -> Tree.Node (sp, cls) rest
     where
         (nonAtoms, _) = Set.partition (not . isAtom) sp
         m    = Set.findMin nonAtoms
         sp'  = Set.delete m sp
         rest = map (build . Set.union sp') (branchOn m)
         cls  = and $ map isNodeClosed rest
-
 
 -- atom checks
 isAtom :: Phi -> Bool
@@ -70,16 +71,12 @@ existsComplements sp
 isNodeClosed :: Tableaux -> Bool
 isNodeClosed (Tree.Node (_, c) _) = c
 
-{-
-Nothing -> there are non-atomic elements in the set 
-(i.e. they can be further expanded)
-Just cls -> if all elements are atomic, check for complements
-(i.e. cls == True <-> ∃ p, ~p in the set)
--}
-closedStatus :: Set Phi -> Maybe Bool
-closedStatus sp = do
-    guard $ allAtoms sp
-    return $ existsComplements sp
+
+-- Closed -> ∃ p, ~p in the set
+describeSet :: Set Phi -> SetStatus
+describeSet sp = if existsComplements sp 
+    then Closed
+    else if (not . allAtoms) sp then NonAtomic else Open
 
 
 -- ops: separate / extract
