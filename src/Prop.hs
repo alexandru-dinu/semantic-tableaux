@@ -5,12 +5,14 @@ import qualified Data.Map as Map
 
 type Context = Map String Bool
 
-data Phi = Var String
-    | Not Phi
-    | And Phi Phi
-    | Or  Phi Phi
-    | Iff Phi Phi
-    | Imp Phi Phi
+data Phi = Var String   -- p
+    | Not Phi           -- ~φ
+    | And Phi Phi       -- φ v φ
+    | Or  Phi Phi       -- φ ^ φ
+    | Iff Phi Phi       -- φ <-> φ
+    | Imp Phi Phi       -- φ  -> φ
+    | Nec Phi           -- ☐ φ :: it is necessary that φ
+    | Pos Phi           -- ◇ φ :: it is possible that φ
     deriving (Read, Eq, Ord)
 
 instance Show Phi where
@@ -21,7 +23,8 @@ instance Show Phi where
     show (Or p q)       = "(" ++ (show p) ++ " or " ++ (show q) ++ ")"
     show (Iff p q)      = "(" ++ (show p) ++ " <-> " ++ (show q) ++ ")"
     show (Imp p q)      = "(" ++ (show p) ++ " -> " ++ (show q) ++ ")"
-
+    show (Nec p)        = "☐ " ++ (show p)
+    show (Pos p)        = "◇ " ++ (show p)
 
 iff :: Bool -> Bool -> Bool
 iff = (==)

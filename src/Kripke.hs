@@ -1,0 +1,69 @@
+module Kripke where
+
+import Data.Map (Map)
+import qualified Data.Map as Map
+
+import Prop    
+
+type World      = String
+type Worlds     = [World]
+type Relations  = [(World, World)] -- wRv :: v is accessible from w
+type Valuations = Map World [Phi] -- TODO: maybe a subset of Phi
+    
+-- A Kripke Model is a tuple M = <W, R, V>
+-- type Model = (Worlds, Relation, Valuation)
+
+data Model = Model {
+    worldsOf     :: Worlds,
+    relationsOf  :: Relations,
+    valuationsOf :: Valuations
+} deriving Show
+
+
+-- Kripke Model 1
+w1 = ["w0", "w1", "w2", "w3"]
+r1 = [("w0", "w1"), ("w0", "w2"), ("w1", "w3"), ("w2", "w3"), ("w1", "w2")]
+v1 = Map.fromAscList [
+    ("w0", [Not (Var "p"), Var "q"]), 
+    ("w1", [Var "p", Not (Var "q")]),
+    ("w2", [Not (Var "p"), Not (Var "q")]), 
+    ("w3", [Var "p", Var "q"])]
+m1 = Model w1 r1 v1
+-- //
+
+
+-- get all worlds accessible from w, in model m
+accessibleFrom :: World -> Model -> Worlds
+accessibleFrom w m = snd $ unzip $ filter (\(u,v) -> u == w) $ relationsOf m
+
+
+-- evaluate formula f under the Model m, in World w
+evaluate :: Model -> World -> Phi -> Bool
+
+-- eval p -- TODO: is ~q true in a world with [p, r]
+evaluate model world (Var v) = case Map.lookup world $ valuationsOf model of 
+    Just ps -> elem (Var v) ps
+    Nothing -> False 
+
+-- eval ~p
+evaluate model world (Not p) = not $ evaluate model world p
+
+-- eval p ^ q
+evaluate model world (And p q) = (r1 && r2) where
+    r1 = evaluate model world p
+    r2 = evaluate model world q
+
+-- eval p v q
+evaluate model world (Or p q) = (r1 || r2) where
+    r1 = evaluate model world p
+    r2 = evaluate model world q
+
+-- eval ☐ p
+evaluate model world (Nec p) = and $ map eval' (accessibleFrom world model)
+    where eval' w = evaluate model w p
+
+-- eval ◇ p
+evaluate model world (Pos p) = evaluate model world (Not (Nec (Not p)))
+
+-- otherwise
+evaluate _ _ _ = False
