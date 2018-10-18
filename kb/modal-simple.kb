@@ -1,0 +1,6 @@
+NEC IF o THEN f OR b
+NEC IF w THEN a OR b
+o
+w
+NOT POS f AND a
+POS NOT b

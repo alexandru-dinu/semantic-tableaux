@@ -1,0 +1,6 @@
+NEC IF door_open THEN forgot_close OR burglar
+NEC IF window_broken THEN football_accident OR burglar
+door_open
+window_broken
+NOT POS forgot_close AND football_accident
+POS NOT burglar
