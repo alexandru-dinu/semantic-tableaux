@@ -81,7 +81,7 @@ describeSet sp = if existsComplements sp
     else if (not . allAtoms) sp then NonAtomic else Open
 
 
--- ops: beta / alpha
+-- construction rules: beta / alpha
 beta :: [Phi] -> [Set Phi]
 beta xs = map Set.singleton xs
 
@@ -100,6 +100,9 @@ branchOn (Or p q)        = beta [p, q]
 branchOn (Imp p q)       = beta [Not p, q]
 branchOn (Not (And p q)) = beta [Not p, Not q]
 branchOn (Not (Iff p q)) = beta [Not (Imp p q), Not (Imp q p)]
+-- modal logic
+branchOn (Not (Nec p))   = alpha [Pos (Not p)]
+branchOn (Not (Pos p))   = alpha [Nec (Not p)]
 
 
 -- eye-candy

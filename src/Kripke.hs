@@ -18,30 +18,6 @@ data Model = Model {
 } deriving Show
 
 
--- Kripke Model 1
-w1 = ["w0", "w1", "w2", "w3"]
-r1 = [("w0", "w1"), ("w0", "w2"), ("w1", "w3"), ("w2", "w3"), ("w1", "w2")]
-v1 = Map.fromAscList [
-    ("w0", [Not (Var "p"), Var "q"]), 
-    ("w1", [Var "p", Not (Var "q")]),
-    ("w2", [Not (Var "p"), Not (Var "q")]), 
-    ("w3", [Var "p", Var "q"])]
-m1 = Model w1 r1 v1
--- //
-
--- Kripke Model 2
-w2 = ["w0", "w1", "w2", "w3"]
-r2 = [("w0", "w1"), ("w0", "w2"), ("w0", "w3")]
-v2 = Map.fromAscList [
-    ("w0", [Var "D", Var "W"]), 
-    ("w1", [Var "D", Var "W", Var "F", Var "B", Not (Var "C")]),
-    ("w2", [Var "D", Var "W", Not (Var "F"), Var "B", Var "C"]), 
-    ("w3", [Var "D", Var "W", Not (Var "F"), Var "B", Not (Var "C")])]
-m2 = Model w2 r2 v2
--- //
-
-
-
 -- get all worlds accessible from w, in model m
 accessibleFrom :: World -> Model -> Worlds
 accessibleFrom w m = snd $ unzip $ filter (\(u,v) -> u == w) $ relationsOf m
@@ -82,3 +58,43 @@ evaluate model world (Nec p) = and $ map eval' (accessibleFrom world model)
 
 -- eval ◇ p
 evaluate model world (Pos p) = evaluate model world (Not (Nec (Not p)))
+
+
+-- TESTS
+
+-- Kripke Model 1
+w1 = ["w0", "w1", "w2", "w3"]
+r1 = [("w0", "w1"), ("w0", "w2"), ("w1", "w3"), ("w2", "w3"), ("w1", "w2")]
+v1 = Map.fromAscList [
+    ("w0", [Not (Var "p"), Var "q"]), 
+    ("w1", [Var "p", Not (Var "q")]),
+    ("w2", [Not (Var "p"), Not (Var "q")]), 
+    ("w3", [Var "p", Var "q"])]
+m1 = Model w1 r1 v1
+-- //
+
+-- Kripke Model 2
+w2 = ["w0", "w1", "w2", "w3"]
+r2 = [("w0", "w1"), ("w0", "w2"), ("w0", "w3")]
+v2 = Map.fromAscList [
+    ("w0", [Var "D", Var "W"]), 
+    ("w1", [Var "D", Var "W", Var "F", Var "B", Not (Var "C")]),
+    ("w2", [Var "D", Var "W", Not (Var "F"), Var "B", Var "C"]), 
+    ("w3", [Var "D", Var "W", Not (Var "F"), Var "B", Not (Var "C")])]
+m2 = Model w2 r2 v2
+-- //
+
+-- Test Formulas
+f1 = Pos $ Var "p"
+f2 = Nec $ Not $ Var "q"
+f3 = Nec $ Nec $ Var "p"
+f4 = Pos $ Pos $ Var "p"
+f5 = Pos $ Pos $ Var "q"
+
+g1 = Nec $ Imp (Var "D") (Or (Var "C") (Var "B"))
+g2 = Nec $ Imp (Var "W") (Or (Var "F") (Var "B"))
+g3 = Not $ Pos $ And (Var "C") (Var "F")
+g4 = Nec $ Var "B"
+
+g5 = Iff (And (Nec (Var "B")) (Pos (Var "C"))) (And (Pos (Var "B")) (Nec (Var "C")))
+-- //
