@@ -50,7 +50,7 @@ accessibleFrom w m = snd $ unzip $ filter (\(u,v) -> u == w) $ relationsOf m
 -- evaluate formula f under the Model m, in World w
 evaluate :: Model -> World -> Phi -> Bool
 
--- eval p -- TODO: is ~q true in a world with [p, r]
+-- eval p
 evaluate model world (Var v) = case Map.lookup world $ valuationsOf model of 
     Just ps -> elem (Var v) ps
     Nothing -> False 
