@@ -8,11 +8,9 @@ import Prop
 type World      = String
 type Worlds     = [World]
 type Relations  = [(World, World)] -- wRv :: v is accessible from w
-type Valuations = Map World [Phi] -- TODO: maybe a subset of Phi
+type Valuations = Map World [Phi]
     
 -- A Kripke Model is a tuple M = <W, R, V>
--- type Model = (Worlds, Relation, Valuation)
-
 data Model = Model {
     worldsOf     :: Worlds,
     relationsOf  :: Relations,
