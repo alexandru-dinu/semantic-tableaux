@@ -31,6 +31,18 @@ v1 = Map.fromAscList [
 m1 = Model w1 r1 v1
 -- //
 
+-- Kripke Model 2
+w2 = ["w0", "w1", "w2", "w3"]
+r2 = [("w0", "w1"), ("w0", "w2"), ("w0", "w3")]
+v2 = Map.fromAscList [
+    ("w0", [Var "D", Var "W"]), 
+    ("w1", [Var "D", Var "W", Var "F", Var "B", Not (Var "C")]),
+    ("w2", [Var "D", Var "W", Not (Var "F"), Var "B", Var "C"]), 
+    ("w3", [Var "D", Var "W", Not (Var "F"), Var "B", Not (Var "C")])]
+m2 = Model w2 r2 v2
+-- //
+
+
 
 -- get all worlds accessible from w, in model m
 accessibleFrom :: World -> Model -> Worlds
@@ -58,12 +70,17 @@ evaluate model world (Or p q) = (r1 || r2) where
     r1 = evaluate model world p
     r2 = evaluate model world q
 
+-- eval p -> q
+evaluate model world (Imp p q) = evaluate model world f
+    where f = Or (Not p) q
+
+-- eval p <-> q
+evaluate model world (Iff p q) = evaluate model world f
+    where f = And (Imp p q) (Imp q p)
+
 -- eval ☐ p
 evaluate model world (Nec p) = and $ map eval' (accessibleFrom world model)
     where eval' w = evaluate model w p
 
 -- eval ◇ p
 evaluate model world (Pos p) = evaluate model world (Not (Nec (Not p)))
-
--- otherwise
-evaluate _ _ _ = False
