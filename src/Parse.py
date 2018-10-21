@@ -8,7 +8,7 @@ grammar = """
     start: phi                  -> do_phi
 
     phi: ATOM                   -> do_atom
-        | "NOT" phi             -> do_not
+        | "NOT" ATOM            -> do_not
         | phi "OR" phi          -> do_or
         | phi "AND" phi         -> do_and
         | phi "IFF" phi         -> do_iff
@@ -37,8 +37,7 @@ class PLTransformer(Transformer):
         return "Var \"" + p + "\""
 
     def do_not(self, p):
-        # phi = "Not (Var \"" + p + "\")"
-        phi = "Not (" + p + ")"
+        phi = "Not (Var \"" + p + "\")"
         return phi
 
     def do_nec(self, p):
