@@ -3,14 +3,14 @@ module Kripke where
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Prop    
+import Prop
 
 type World      = String
 type Worlds     = [World]
 type Relations  = [(World, World)] -- wRv :: v is accessible from w
 type Valuations = Map World [Phi]
-    
--- A Kripke Model is a tuple M = <W, R, V>
+
+-- | A Kripke Model is a tuple M = <W, R, V>
 data Model = Model {
     worldsOf     :: Worlds,
     relationsOf  :: Relations,
@@ -18,45 +18,45 @@ data Model = Model {
 } deriving Show
 
 
--- get all worlds accessible from w, in model m
+-- | Get all worlds accessible from w, in model m
 accessibleFrom :: World -> Model -> Worlds
 accessibleFrom w m = snd $ unzip $ filter (\(u,v) -> u == w) $ relationsOf m
 
 
--- evaluate formula f under the Model m, in World w
+-- | Evaluate formula f under the Model m, in World w
 evaluate :: Model -> World -> Phi -> Bool
 
--- eval p
-evaluate model world (Var v) = case Map.lookup world $ valuationsOf model of 
+-- | Eval p: check if p exists in the valuations of given world
+evaluate model world (Var v) = case Map.lookup world $ valuationsOf model of
     Just ps -> elem (Var v) ps
-    Nothing -> False 
+    Nothing -> False
 
--- eval ~p
+-- | Eval ~p
 evaluate model world (Not p) = not $ evaluate model world p
 
--- eval p ^ q
+-- | Eval p ^ q
 evaluate model world (And p q) = (r1 && r2) where
     r1 = evaluate model world p
     r2 = evaluate model world q
 
--- eval p v q
+-- | Eval p v q
 evaluate model world (Or p q) = (r1 || r2) where
     r1 = evaluate model world p
     r2 = evaluate model world q
 
--- eval p -> q
+-- | Eval p -> q
 evaluate model world (Imp p q) = evaluate model world f
     where f = Or (Not p) q
 
--- eval p <-> q
+-- | Eval p <-> q
 evaluate model world (Iff p q) = evaluate model world f
     where f = And (Imp p q) (Imp q p)
 
--- eval ☐ p
+-- | Eval ☐ p
 evaluate model world (Nec p) = and $ map eval' (accessibleFrom world model)
     where eval' w = evaluate model w p
 
--- eval ◇ p
+-- | Eval ◇ p
 evaluate model world (Pos p) = evaluate model world (Not (Nec (Not p)))
 
 
@@ -66,9 +66,9 @@ evaluate model world (Pos p) = evaluate model world (Not (Nec (Not p)))
 w1 = ["w0", "w1", "w2", "w3"]
 r1 = [("w0", "w1"), ("w0", "w2"), ("w1", "w3"), ("w2", "w3"), ("w1", "w2")]
 v1 = Map.fromAscList [
-    ("w0", [Not (Var "p"), Var "q"]), 
+    ("w0", [Not (Var "p"), Var "q"]),
     ("w1", [Var "p", Not (Var "q")]),
-    ("w2", [Not (Var "p"), Not (Var "q")]), 
+    ("w2", [Not (Var "p"), Not (Var "q")]),
     ("w3", [Var "p", Var "q"])]
 m1 = Model w1 r1 v1
 -- //
@@ -77,9 +77,9 @@ m1 = Model w1 r1 v1
 w2 = ["w0", "w1", "w2", "w3"]
 r2 = [("w0", "w1"), ("w0", "w2"), ("w0", "w3")]
 v2 = Map.fromAscList [
-    ("w0", [Var "D", Var "W"]), 
+    ("w0", [Var "D", Var "W"]),
     ("w1", [Var "D", Var "W", Var "F", Var "B", Not (Var "C")]),
-    ("w2", [Var "D", Var "W", Not (Var "F"), Var "B", Var "C"]), 
+    ("w2", [Var "D", Var "W", Not (Var "F"), Var "B", Var "C"]),
     ("w3", [Var "D", Var "W", Not (Var "F"), Var "B", Not (Var "C")])]
 m2 = Model w2 r2 v2
 -- //

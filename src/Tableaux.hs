@@ -8,7 +8,7 @@ import Control.Monad (guard)
 
 import Prop
 
--- a tableaux is a tree with nodes = sets of propositions and their respective sat (i.e. ~closed)
+-- | A tableaux is a tree with nodes = sets of propositions and their respective sat (i.e. ~closed)
 type NodeType = (Set Phi, Bool)
 type Tableaux = Tree NodeType
 
@@ -21,7 +21,7 @@ tableaux sp = (build . Set.singleton) sp
 the tree is built as follows:
 check the status of current set of formulas (sp)
 
-if the set is open or closed, don't construct further (leaf node), 
+if the set is open or closed, don't construct further (leaf node),
 set closed status (sat <-> ~closed)
 
 if the set contains non-atomic elements,
@@ -45,7 +45,7 @@ build sp = case describeSet sp of
         rest = map (build . Set.union sp') (branchOn m)
         cls  = and $ map isNodeClosed rest
 
--- atom checks
+-- | Check if formulas are atomic
 isAtom :: Phi -> Bool
 isAtom (Var _)       = True
 isAtom (Not (Var _)) = True
@@ -55,13 +55,13 @@ allAtoms :: Set Phi -> Bool
 allAtoms sp = Set.null $ Set.filter (not . isAtom) sp
 
 
--- complement checks
+-- | Check if there are complements in a set of formulas
 complement :: Phi -> Phi
 complement (Not p) = p
 complement p       = Not p
 
 existsComplements :: Set Phi -> Bool
-existsComplements sp 
+existsComplements sp
     | Set.size sp <= 1 = False
     | otherwise        = if Set.member (complement m) sp' then True else existsComplements sp'
     where
@@ -69,49 +69,59 @@ existsComplements sp
         sp' = Set.deleteMin sp
 
 
--- closure checks
+-- | Get the closed-state of a node
 isNodeClosed :: Tableaux -> Bool
 isNodeClosed (Tree.Node (_, c) _) = c
 
 
--- Closed -> ∃ p, ~p in the set
+-- | Describe a set based on contained formulas
+-- | Closed     <-> ∃ p, ~p in the set
+-- | Open       <-> non-closed, atomic elements => sat
+-- | NonAtomic  <-> ∃ f that can be further expanded
 describeSet :: Set Phi -> SetStatus
-describeSet sp = if existsComplements sp 
+describeSet sp = if existsComplements sp
     then Closed
     else if (not . allAtoms) sp then NonAtomic else Open
 
 
--- construction rules: beta / alpha
+-- | Construction rules
+
+-- | Construct separate subsets
 beta :: [Phi] -> [Set Phi]
 beta xs = map Set.singleton xs
 
+-- | Construct a single set
 alpha :: [Phi] -> [Set Phi]
 alpha xs = [Set.fromList xs]
 
+-- | Node expansion rules
 branchOn :: Phi -> [Set Phi]
--- no ramification, just _expand_ the formula
+
+-- | No ramification, just _expand_ the formula
 branchOn (And p q)       = alpha [p, q]
 branchOn (Not (Or p q))  = alpha [Not p, Not q]
 branchOn (Not (Imp p q)) = alpha [p, Not q]
 branchOn (Iff p q)       = alpha [Imp p q, Imp q p]
 branchOn (Not (Not p))   = alpha [p]
--- ramification
+
+-- | Ramification
 branchOn (Or p q)        = beta [p, q]
 branchOn (Imp p q)       = beta [Not p, q]
 branchOn (Not (And p q)) = beta [Not p, Not q]
 branchOn (Not (Iff p q)) = beta [Not (Imp p q), Not (Imp q p)]
--- modal logic
+
+-- | Modal logic
 branchOn (Not (Nec p))   = alpha [Pos (Not p)]
 branchOn (Not (Pos p))   = alpha [Nec (Not p)]
 
 
--- eye-candy
+-- | Tree printing utils
 closedStr True  = " {X} "
 closedStr False = " {O} "
 
 showNode :: NodeType -> String
 showNode (sp, cls) = show (Set.toList sp) ++ (closedStr cls)
 
--- nodes -> string nodes with showNode, then show all tree
+-- | nodes -> string nodes with showNode, then show all tree
 showTableaux :: Tableaux -> String
 showTableaux t = (Tree.drawTree . fmap showNode) t

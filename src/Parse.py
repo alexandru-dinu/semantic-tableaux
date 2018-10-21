@@ -47,12 +47,12 @@ class PLTransformer(Transformer):
 
     def do_pos(self, p):
         phi = "Pos (" + p + ")"
-        return phi   
+        return phi
 
     def do_or(self, p1, p2):
         phi = "Or (" + p1 + ") (" + p2 + ")"
         return phi
-    
+
     def do_and(self, p1, p2):
         phi = "And (" + p1 + ") (" + p2 + ")"
         return phi
@@ -60,7 +60,7 @@ class PLTransformer(Transformer):
     def do_iff(self, p1, p2):
         phi = "Iff (" + p1 + ") (" + p2 + ")"
         return phi
-    
+
     def do_imp(self, p1, p2):
         phi = "Imp (" + p1 + ") (" + p2 + ")"
         return phi
@@ -77,7 +77,7 @@ def cons_and(ps):
 
 if __name__ == '__main__':
     debug = (len(sys.argv) < 2)
-    
+
     pl_parser = Lark(grammar, parser='lalr', transformer=PLTransformer(debug))
 
     if debug:
