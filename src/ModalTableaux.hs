@@ -19,20 +19,11 @@ tableaux :: Phi -> Tableaux
 tableaux sp = (build . Set.singleton) sp
 
 {-
-the tree is built as follows:
-check the status of current set of formulas (sp)
-
-if the set is open or closed, don't construct further (leaf node),
-set closed status (sat <-> ~closed)
-
-if the set contains non-atomic elements,
-select such an element (m) from the non-atomic-only subset,
-delete it from the original sp (-> sp'),
-and recursively construct the rest of the tree, branching on m
-(depending on what formula m is)
-the status of current node is an and of the all child statuses
-
-if sat, a possible assignment is the Open, Atomic set
+start with initial world 0
+exhaust type 1 rules (simple ST + put ¬ inside for box and diamond)
+construct new world (prev + 1) for each diamond p => p is true in this world
+box q will be true in all succs => copied without box
+also, because we are in K (p -> ☐p), all literals in a world are copied in the succs of that world
 -}
 build :: Set Phi -> Tableaux
 build sp = case describeSet sp of
