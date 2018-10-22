@@ -34,10 +34,10 @@ class PLTransformer(Transformer):
         return p
 
     def do_atom(self, p):
-        return "Var \"" + p + "\""
+        return "Var (\"" + p + "\")"
 
     def do_not(self, p):
-        phi = "Not (Var \"" + p + "\")"
+        phi = "Not (Var(\"" + p + "\"))"
         return phi
 
     def do_nec(self, p):
@@ -49,19 +49,19 @@ class PLTransformer(Transformer):
         return phi
 
     def do_or(self, p1, p2):
-        phi = "Or (" + p1 + ") (" + p2 + ")"
+        phi = "Or ((" + p1 + "), (" + p2 + "))"
         return phi
 
     def do_and(self, p1, p2):
-        phi = "And (" + p1 + ") (" + p2 + ")"
+        phi = "And ((" + p1 + "), (" + p2 + "))"
         return phi
 
     def do_iff(self, p1, p2):
-        phi = "Iff (" + p1 + ") (" + p2 + ")"
+        phi = "Iff ((" + p1 + "), (" + p2 + "))"
         return phi
 
     def do_imp(self, p1, p2):
-        phi = "Imp (" + p1 + ") (" + p2 + ")"
+        phi = "Imp ((" + p1 + "), (" + p2 + "))"
         return phi
 # /Transformer
 
@@ -70,8 +70,8 @@ class PLTransformer(Transformer):
 def cons_and(ps):
     if len(ps) == 2:
         p, q = ps
-        return "And (" + p + ") (" + q + ")"
-    return "And (" + ps[0] + ") (" + cons_and(ps[1:]) + ")"
+        return "And ((" + p + "), (" + q + "))"
+    return "And ((" + ps[0] + "), (" + cons_and(ps[1:]) + "))"
 
 
 if __name__ == '__main__':

@@ -1,3 +1,3 @@
 #/bin/bash
 
-python Parse.py "$1" | runhaskell Main.hs
+python Parse.py "$1" | python Main.py
