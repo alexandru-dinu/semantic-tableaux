@@ -1,0 +1,4 @@
+POS p AND q
+POS r
+NOT p
+NEC q AND s
