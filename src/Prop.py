@@ -148,25 +148,6 @@ class Imp(Phi):
         return False
 
 
-class Nec(Phi):
-    def __init__(self, p):
-        self.p = p
-
-    def __repr__(self):
-        return "☐ " + repr(self.p)
-
-    def evaluate(self, context):
-        pass
-
-    def getPrio(self):
-        return 7
-
-    def __eq__(self, other):
-        if isinstance(other, Nec):
-            return (self.p1 == other.p1) and (self.p2 == other.p2)
-        return False
-
-
 class Pos(Phi):
     def __init__(self, p):
         self.p = p
@@ -178,9 +159,28 @@ class Pos(Phi):
         pass
 
     def getPrio(self):
-        return 8
+        return 7
 
     def __eq__(self, other):
         if isinstance(other, Pos):
-            return (self.p1 == other.p1) and (self.p2 == other.p2)
+            return (self.p == other.p)
+        return False
+
+
+class Nec(Phi):
+    def __init__(self, p):
+        self.p = p
+
+    def __repr__(self):
+        return "☐ " + repr(self.p)
+
+    def evaluate(self, context):
+        pass
+
+    def getPrio(self):
+        return 8
+
+    def __eq__(self, other):
+        if isinstance(other, Nec):
+            return (self.p == other.p)
         return False

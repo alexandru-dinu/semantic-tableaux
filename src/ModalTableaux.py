@@ -1,5 +1,5 @@
 from enum import Enum
-
+from termcolor import colored
 from copy import copy
 from functools import reduce
 
@@ -25,14 +25,16 @@ class Tree:
         return "<semantic tableaux>"
 
     def __str__(self, level=0):
-        ret = "  " * level + repr(self.sp) + " " + Tree._show(self.closed) + "\n"
+        ret = "  " * level  + repr(self.sp) + \
+            colored(" <" + repr(self.world) + "> ", 'cyan') + \
+            Tree._show(self.closed) + "\n"
         for kid in self.kids:
             ret += kid.__str__(level+1)
         return ret
 
     @staticmethod
     def _show(b):
-        return "{X}" if b else "{O}"
+        return colored("{X}", 'red') if b else colored("{O}", 'green')
 
 
 
@@ -81,26 +83,59 @@ in world w, for each diamond(phi) in sp: --type2
     recursively on spi in wi
 """
 
+def isModal(p):
+    return (isDiamond(p) or isBox(p))
+
+def allModal(sp):
+    for p in sp:
+        if not isModal(p):
+            return False
+    return True
+
+def isDiamond(phi):
+    return (getName(phi) == 'Pos')
+
+def isBox(phi):
+    return (getName(phi) == 'Nec')
+
 def tableaux(phi):
     return build([phi])
 
-def build(sp):
+def build(sp, world=0):
     desc = describeSet(sp)
 
     if desc == SetStatus.Open:
-        return Tree(sp, False, [])
+        return Tree(sp, False, [], world)
 
     if desc == SetStatus.Closed:
-        return Tree(sp, True, [])
+        return Tree(sp, True, [], world)
 
     if desc == SetStatus.NonAtomic:
-        nonAtoms, _ = partition(lambda p : not p.isAtom(), sp)
-        m = findMin(nonAtoms)
-        sp2 = copy(sp)
-        sp2.remove(m)
-        rest = list(map(lambda x : build(sp2 + x), branchOn(m)))
-        closed = reduce(lambda x, y: x and y, map(lambda n : n.closed, rest), True)
-        return Tree(sp, closed, rest)
+        nonAtoms, atoms = partition(lambda p : not p.isAtom(), sp)
+
+        # type1 rules were exhausted
+        if allModal(nonAtoms):
+            root = Tree(sp, False, [], world)
+
+            # type2 -- world creating rules
+            diamonds = [p for p in nonAtoms if isDiamond(p)]
+            for i, d in enumerate(diamonds):
+                new_sp = [d.p] + [x.p for x in nonAtoms if isBox(x)] + atoms # --type3 rules
+                rest = build(new_sp, world+i+1)
+                node = Tree(new_sp, rest.closed, [rest], rest.world)
+                root.kids += [node]
+
+            root.closed = reduce(lambda x, y: x and y, map(lambda n : n.closed, root.kids), True)
+            return root
+
+        # type1 rules can still be applied
+        else:
+            m = findMin(nonAtoms) # guaranteed to return a non-modal phi
+            sp2 = copy(sp)
+            sp2.remove(m)
+            rest = list(map(lambda x : build(sp2 + x, world), branchOn(m)))
+            closed = reduce(lambda x, y: x and y, map(lambda n : n.closed, rest), True)
+            return Tree(sp, closed, rest, world)
 
 def alpha(sp):
     return [sp]
@@ -119,6 +154,10 @@ def branchOn(phi):
         return alpha([Imp(phi.p1, phi.p2), Imp(phi.p2, phi.p1)])
     if getName(phi) == 'Not' and getName(phi.p) == 'Not':
         return alpha([phi.p.p])
+    if getName(phi) == 'Not' and getName(phi.p) == 'Pos':
+        return alpha([Nec(Not(phi.p.p))])
+    if getName(phi) == 'Not' and getName(phi.p) == 'Nec':
+        return alpha([Pos(Not(phi.p.p))])
 
     if getName(phi) == 'Or':
         return beta([phi.p1, phi.p2])
