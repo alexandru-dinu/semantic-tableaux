@@ -1,24 +1,11 @@
 from enum import Enum
-from operator import itemgetter
-from itertools import tee, filterfalse
+
 from copy import copy
 from functools import reduce
 
 from Prop import *
+from Utils import partition, findMin, getName
 
-def partition(pred, iterable):
-    t1, t2 = tee(iterable)
-    r1 = list(filter(pred, t1))
-    r2 = list(filterfalse(pred, t2))
-    return r1, r2
-
-def findMin(sp):
-    xs = map(lambda p : (p, p.getPrio()), sp)
-    xs = sorted(xs, key=itemgetter(1))
-    return xs[0][0]
-
-def getName(x):
-    return x.__class__.__name__
 
 
 class SetStatus(Enum):
@@ -37,24 +24,22 @@ class Tree:
         return "<semantic tableaux>"
 
     def __str__(self, level=0):
-        ret = "  " * level + repr(self.sp) + " " + _show(self.closed) + "\n"
+        ret = "  " * level + repr(self.sp) + " " + Tree._show(self.closed) + "\n"
         for kid in self.kids:
             ret += kid.__str__(level+1)
         return ret
 
-def _show(b):
-    return "{X}" if b else "{O}"
+    @staticmethod
+    def _show(b):
+        return "{X}" if b else "{O}"
+
+
 
 def isSat(tree):
     return not tree.closed
 
-
-def tableaux(phi):
-    return build([phi])
-
 def allAtoms(sp):
     return len(list(filter(lambda x : not x.isAtom(), sp))) == 0
-
 
 def complement(p):
     return p.p if getName(p) == "Not" else Not(p)
@@ -62,14 +47,11 @@ def complement(p):
 def existsComplements(sp):
     if len(sp) <= 1:
         return False
-    else:
-        m = findMin(sp)
-        r = copy(sp)
-        r.remove(m)
-        if complement(m) in r:
-            return True
-        else:
-            return existsComplements(r)
+
+    m = findMin(sp)
+    r = copy(sp)
+    r.remove(m)
+    return True if complement(m) in r else existsComplements(r)
 
 def describeSet(sp):
     if existsComplements(sp):
@@ -78,6 +60,18 @@ def describeSet(sp):
         return SetStatus.NonAtomic
     else:
         return SetStatus.Open
+
+
+"""
+w0: [p1, ..., pn]
+- exhaust type-1 rules
+- for each diamond(p) -> create new world where p is true
+- box(q) will be copied in all newly created worlds
+- K: p -> box(p), so all literals are also copied in all newly created worlds
+"""
+
+def tableaux(phi):
+    return build([phi])
 
 def build(sp):
     desc = describeSet(sp)
@@ -97,13 +91,11 @@ def build(sp):
         closed = reduce(lambda x, y: x and y, map(lambda n : n.closed, rest), True)
         return Tree(sp, closed, rest)
 
-
 def alpha(sp):
     return [sp]
 
 def beta(sp):
     return list(map(lambda x : [x], sp))
-
 
 def branchOn(phi):
     if getName(phi) == 'And':
