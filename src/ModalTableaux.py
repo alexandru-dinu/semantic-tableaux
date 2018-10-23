@@ -15,10 +15,11 @@ class SetStatus(Enum):
 
 
 class Tree:
-    def __init__(self, sp, closed, kids):
+    def __init__(self, sp, closed, kids, world=0):
         self.sp     = sp
         self.closed = closed
         self.kids   = kids
+        self.world  = world
 
     def __repr__(self):
         return "<semantic tableaux>"
@@ -68,6 +69,16 @@ w0: [p1, ..., pn]
 - for each diamond(p) -> create new world where p is true
 - box(q) will be copied in all newly created worlds
 - K: p -> box(p), so all literals are also copied in all newly created worlds
+
+in world w, exhaust all type1 rules
+
+in world w, for each diamond(phi) in sp: --type2
+    construct new world wi
+    put phi in wi
+    put all box(psi), p from sp in wi --type3
+    link wi with w
+
+    recursively on spi in wi
 """
 
 def tableaux(phi):
