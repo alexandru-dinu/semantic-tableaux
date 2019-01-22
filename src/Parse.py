@@ -68,9 +68,13 @@ class PLTransformer(Transformer):
 
 # right-assoc
 def cons_and(ps):
+    if len(ps) == 1:
+        return ps
+
     if len(ps) == 2:
         p, q = ps
         return "And (" + p + ") (" + q + ")"
+
     return "And (" + ps[0] + ") (" + cons_and(ps[1:]) + ")"
 
 
