@@ -15,7 +15,7 @@ type Tableaux = Tree NodeType
 data SetStatus = NonAtomic | Open | Closed deriving (Eq, Show)
 
 tableaux :: Phi -> Tableaux
-tableaux sp = (build . Set.singleton) sp
+tableaux = build . Set.singleton
 
 {-
 the tree is built as follows:
@@ -43,7 +43,7 @@ build sp = case describeSet sp of
         m    = Set.findMin nonAtoms
         sp'  = Set.delete m sp
         rest = map (build . Set.union sp') (branchOn m)
-        cls  = and $ map isNodeClosed rest
+        cls  = all isNodeClosed rest
 
 -- | Check if formulas are atomic
 isAtom :: Phi -> Bool
@@ -63,7 +63,7 @@ complement p       = Not p
 existsComplements :: Set Phi -> Bool
 existsComplements sp
     | Set.size sp <= 1 = False
-    | otherwise        = if Set.member (complement m) sp' then True else existsComplements sp'
+    | otherwise        = Set.member (complement m) sp' || existsComplements sp'
     where
         m   = Set.findMin sp
         sp' = Set.deleteMin sp
@@ -79,16 +79,17 @@ isNodeClosed (Tree.Node (_, c) _) = c
 -- | Open       <-> non-closed, atomic elements => sat
 -- | NonAtomic  <-> ∃ f that can be further expanded
 describeSet :: Set Phi -> SetStatus
-describeSet sp = if existsComplements sp
-    then Closed
-    else if (not . allAtoms) sp then NonAtomic else Open
+describeSet sp
+    | existsComplements sp = Closed
+    | (not . allAtoms) sp  = NonAtomic
+    | otherwise            = Open
 
 
 -- | Construction rules
 
 -- | Construct separate subsets
 beta :: [Phi] -> [Set Phi]
-beta xs = map Set.singleton xs
+beta = map Set.singleton
 
 -- | Construct a single set
 alpha :: [Phi] -> [Set Phi]
@@ -120,8 +121,8 @@ closedStr True  = " {X} "
 closedStr False = " {O} "
 
 showNode :: NodeType -> String
-showNode (sp, cls) = show (Set.toList sp) ++ (closedStr cls)
+showNode (sp, cls) = show (Set.toList sp) ++ closedStr cls
 
 -- | nodes -> string nodes with showNode, then show all tree
 showTableaux :: Tableaux -> String
-showTableaux t = (Tree.drawTree . fmap showNode) t
+showTableaux = Tree.drawTree . fmap showNode

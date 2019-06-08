@@ -1,6 +1,7 @@
 module Prop where
 
 import Data.Map (Map)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 
 type Context = Map String Bool
@@ -33,9 +34,7 @@ imp :: Bool -> Bool -> Bool
 imp p q = (not p) || q
 
 eval :: Context -> Phi -> Bool
-eval ctx (Var x) = case Map.lookup x ctx of
-    Just v  -> v
-    Nothing -> error "DNE"
+eval ctx (Var x)   = fromMaybe (error "DNE") (Map.lookup x ctx)
 eval ctx (Not p)   = not $ eval ctx p
 eval ctx (And p q) = (eval ctx p)   &&   (eval ctx q)
 eval ctx (Or p q)  = (eval ctx p)   ||   (eval ctx q)

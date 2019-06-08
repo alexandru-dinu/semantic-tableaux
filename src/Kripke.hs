@@ -20,7 +20,7 @@ data Model = Model {
 
 -- | Get all worlds accessible from w, in model m
 accessibleFrom :: World -> Model -> Worlds
-accessibleFrom w m = snd $ unzip $ filter (\(u,v) -> u == w) $ relationsOf m
+accessibleFrom w m = map snd (filter (\ (u, v) -> u == w) $ relationsOf m)
 
 
 -- | Evaluate formula f under the Model m, in World w
@@ -28,19 +28,19 @@ evaluate :: Model -> World -> Phi -> Bool
 
 -- | Eval p: check if p exists in the valuations of given world
 evaluate model world (Var v) = case Map.lookup world $ valuationsOf model of
-    Just ps -> elem (Var v) ps
+    Just ps -> Var v `elem` ps
     Nothing -> False
 
 -- | Eval ~p
 evaluate model world (Not p) = not $ evaluate model world p
 
 -- | Eval p ^ q
-evaluate model world (And p q) = (r1 && r2) where
+evaluate model world (And p q) = r1 && r2 where
     r1 = evaluate model world p
     r2 = evaluate model world q
 
 -- | Eval p v q
-evaluate model world (Or p q) = (r1 || r2) where
+evaluate model world (Or p q) = r1 || r2 where
     r1 = evaluate model world p
     r2 = evaluate model world q
 
@@ -53,7 +53,7 @@ evaluate model world (Iff p q) = evaluate model world f
     where f = And (Imp p q) (Imp q p)
 
 -- | Eval ☐ p
-evaluate model world (Nec p) = and $ map eval' (accessibleFrom world model)
+evaluate model world (Nec p) = all eval' (accessibleFrom world model)
     where eval' w = evaluate model w p
 
 -- | Eval ◇ p
